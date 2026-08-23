@@ -37,14 +37,14 @@ export default function CommentCard({ comment, isTopComment = false, postId }) {
 
           {comment?.content ? (
             <p className="text-xs text-gray-700 leading-relaxed px-0.5">
-              {comment.content}
+              {comment?.content}
             </p>
           ) : null}
 
           {comment?.image ? (
             <div className="w-full bg-gray-50 rounded-lg overflow-hidden max-h-60 flex items-center justify-center">
               <img 
-                src={comment.image}
+                src={comment?.image}
                 alt="Comment attachment" 
                 className="max-h-56 object-contain"
               />

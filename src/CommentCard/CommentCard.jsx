@@ -3,11 +3,8 @@ import DropdownAction from '../Components/DropdownAction/DropdownAction';
 import { AuthContext } from '../Context/AuthContext';
 import DropdownActionComment from '../Components/DropdownAction/DropdownActionComment';
 
-export default function CommentCard({ comment, isTopComment = false ,postId}) {
-   const {userData}= useContext(AuthContext)
-  
- 
-   
+export default function CommentCard({ comment, isTopComment = false, postId }) {
+  const { userData } = useContext(AuthContext);
 
   return (
     <>
@@ -23,7 +20,7 @@ export default function CommentCard({ comment, isTopComment = false ,postId}) {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
               <img 
-                src={comment?.commentCreator?.photo} 
+                src={comment?.commentCreator?.photo || '/default-avatar.png'} 
                 alt="Commenter" 
                 className="w-8 h-8 rounded-full object-cover bg-gray-100" 
               />
@@ -31,7 +28,10 @@ export default function CommentCard({ comment, isTopComment = false ,postId}) {
                 {comment?.commentCreator?.name}
               </h4>
             </div>
-{userData._id===comment.commentCreator._id&& <DropdownActionComment postId={comment?.post} comment={comment} />}
+
+            {userData?._id && comment?.commentCreator?._id && userData._id === comment.commentCreator._id && (
+              <DropdownActionComment postId={comment?.post} comment={comment} />
+            )}
            
           </div>
 

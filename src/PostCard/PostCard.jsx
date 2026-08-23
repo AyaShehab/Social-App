@@ -122,7 +122,9 @@ export default function PostCard({ post, isSinglePost = false }) {
       </div>
     </div>
   </div>
-{userData?._id === post.user._id &&  <DropdownAction post={post}/>}
+{userData?._id && post?.user?._id && userData._id === post.user._id && (
+  <DropdownAction post={post} />
+)}
 
  
 </div>

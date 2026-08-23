@@ -1,54 +1,18 @@
-import axios from "axios";
-import { createContext, useEffect, useState } from "react";
+import { createContext, useState, useEffect } from 'react';
 
-export let AuthContext = createContext();
+export const AuthContext = createContext();
 
-export function AuthContextProvider({ children }) {
-  const [userToken, setuserToken] = useState(null);
-  const [userData, setuserData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true); // إضافة حالة التحميل
+export default function AuthContextProvider({ children }) {
+  const [userToken, setuserToken] = useState(localStorage.getItem('token') || null);
 
-  async function getUserData() {
-    try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        setIsLoading(false);
-        return;
-      }
-
-      let { data } = await axios.get('https://route-posts.routemisr.com/users/profile-data', {
-        headers: {
-          Authorization: `Bearer ${token}`
-        }
-      });
-
-      // الحماية بـ Optional Chaining لعدم ضرب أخطاء
-      setuserData(data?.data?.user || data?.user || null);
-    } catch (error) {
-      console.error("Error fetching user data:", error);
-      // في حالة وجود مشكلة في التوكين يتم مسحه لتسجيل الدخول من جديد
-      if (error?.response?.status === 401) {
-        localStorage.removeItem('token');
-        setuserToken(null);
-        setuserData(null);
-      }
-    } finally {
-      setIsLoading(false);
-    }
+ 
+  function logOut() {
+    localStorage.removeItem('token');
+    setuserToken(null); 
   }
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (token) {
-      setuserToken(token);
-      getUserData();
-    } else {
-      setIsLoading(false);
-    }
-  }, []);
-
   return (
-    <AuthContext.Provider value={{ userToken, setuserToken, userData, setuserData, getUserData, isLoading }}>
+    <AuthContext.Provider value={{ userToken, setuserToken, logOut }}>
       {children}
     </AuthContext.Provider>
   );

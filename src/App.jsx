@@ -10,14 +10,13 @@ import Regestier from './Auth/Regestier/Regestier'
 import Profile from './Components/Profile/Profile'
 import Home from './Components/Home/Home'
 import Notfound from './Components/NotFound/Notfound'
-
+import { CounterContextProvider } from './Context/CounterContext'
+import { AuthContextProvider } from './Context/AuthContext'
 import ProtectRoute from './ProtectRoute/ProtectRoute'
 import ProtectAuth from './ProtectAuth/ProtectAuth'
 import ChangePassword from './ChangePassword/ChangePassword'
 import { ReactQueryDevtools } from '@tanstack/react-query-devtools'
 import PostDetails from './PostDetails/PostDetails'
-import AuthContextProvider from './Context/AuthContext'
-import { CounterContextProvider } from './Context/CounterContext'
 
 function App() {
 let route= createBrowserRouter([

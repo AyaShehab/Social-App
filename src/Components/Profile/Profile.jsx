@@ -229,7 +229,7 @@ export default function Profile() {
 
         <div className="mt-4">
           {data?.data?.data?.posts?.map((post) => (
-            <PostCard key={post._id} post={post} />
+            <PostCard key={post?._id} post={post} />
           ))}
         </div>
 

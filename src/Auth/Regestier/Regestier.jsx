@@ -4,40 +4,42 @@ import { Button, Input } from '@heroui/react';
 import * as zod from 'zod';
 import { zodResolver } from '@hookform/resolvers/zod';
 import axios from 'axios';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { AuthContext } from '../../Context/AuthContext';
 
-const schema = zod.object({
-  username: zod.string().min(1, 'Username is required').regex(/^[a-zA-Z0-9_-]{3,16}$/, 'Must be 3-16 alphanumeric characters'),
-  name: zod.string().min(3, 'Minimum 3 characters').max(10, 'Maximum 10 characters'),
-  email: zod.string().min(1, 'Email is required').email('Invalid email address'),
-  password: zod.string().min(1, 'Password is required').regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/, 'Requires 8+ chars with uppercase, lowercase, number, and special char'),
-  gender: zod.string().min(1, 'Gender is required'),
-  dateOfBirth: zod.coerce.date().refine((dateVal) => {
-    const current = new Date().getFullYear();
-    const year = dateVal.getFullYear();
-    return (current - year) > 20;
-  }, 'Age must be greater than 20 years old'),
-  rePassword: zod.string().min(1, 'Please confirm your password')
-}).refine((obj) => obj.password === obj.rePassword, {
-  path: ['rePassword'],
-  message: 'Passwords do not match'
-});
 
 export default function Register() {
-  const { setuserToken } = useContext(AuthContext);
-  const navigate = useNavigate();
-  const [isLoading, setIsLoading] = useState(false);
-  const [apiError, setApiError] = useState(null);
+
+ let {setuserToken} = useContext(AuthContext)
+  let navigate = useNavigate()
+
+  const schema = zod.object({
+        username: zod.string().nonempty('User Name is required').regex(/^[a-zA-Z0-9_-]{3,16}$/, 'Invalid User Name'),
+    name: zod.string().nonempty('Name is required').min(3, 'Min is 3 letters').max(10, 'Max is 10 letters'),
+    email: zod.string().nonempty('Email is required').email('Invalid email'),
+    password: zod.string().nonempty('Password is required').regex(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/, 'Invalid password'),
+    gender: zod.string().nonempty('Gender is required'),
+    dateOfBirth: zod.coerce.date('Date is required').refine((dateVal) => {
+      let current = new Date().getFullYear();
+      let year = dateVal.getFullYear();
+      let age = current - year;
+      return age > 20;
+    }, 'Age must be greater than 20'),
+    rePassword: zod.string().nonempty('RePassword is required')
+  }).refine((obj) => obj.password === obj.rePassword, {
+    path: ['rePassword'],
+    message: 'Password and repassword must match'
+  });
 
   const {
     register,
     handleSubmit,
-    formState: { errors, touchedFields },
+    setError,
+    formState,
   } = useForm({
     defaultValues: {
       name: '',
-      username: '',
+      username:'',
       email: '',
       password: '',
       rePassword: '',
@@ -47,25 +49,44 @@ export default function Register() {
     mode: 'onBlur',
     resolver: zodResolver(schema)
   });
+    const [isLoading, setisLoading] = useState(false)
 
-  async function submitForm(userData) {
-    setIsLoading(true);
-    setApiError(null);
+  const [apiError, setapiError] = useState(null)
 
-    try {
-      const response = await axios.post('https://route-posts.routemisr.com/users/signup', userData);
-      if (response.data.message === 'account created') {
-        const token = response.data.data.token;
-        setuserToken(token);
-        localStorage.setItem('token', token);
-        navigate('/');
+  function submitForm(userData) {
+    setisLoading(true)
+ 
+    axios.post('https://route-posts.routemisr.com/users/signup', userData)
+    .then((response)=>{console.log(response);
+      setisLoading(false)
+      if(response.data.message === 'account created'){
+        setuserToken(response.data.data.token)
+        localStorage.setItem('token', response.data.data.token)
+             navigate('/')
       }
-    } catch (error) {
-      setApiError(error?.response?.data?.message || 'Registration failed. Please try again.');
-    } finally {
-      setIsLoading(false);
-    }
+  
+    })
+    .catch((error)=>
+      {
+        console.log(error.response.data.message);
+        setapiError(error.response.data.message)
+  
+    })
+    .finally(()=>{
+      setisLoading(false);
+    })
   }
+
+  
+
+  const ErrorMessage = ({ message }) => (
+    <p className="text-xs text-red-500 mt-1.5 flex items-center gap-1 font-medium animate-fadeIn">
+      <svg className="w-3.5 h-3.5 shrink-0 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+        <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+      </svg>
+      {message}
+    </p>
+  );
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-900 via-sky-900 to-slate-900 flex items-center justify-center p-4">
@@ -77,42 +98,34 @@ export default function Register() {
           <p className="text-sm text-slate-500 mt-2">Join us today! Please enter your details.</p>
         </div>
 
-        {/* Global API Error */}
-        {apiError && (
-          <div className="bg-red-100 border border-red-300 text-red-600 font-medium py-2 px-4 mb-4 rounded-xl text-center text-sm">
-            {apiError}
-          </div>
-        )}
-
         {/* Form */}
         <form onSubmit={handleSubmit(submitForm)} className="space-y-5">
           
-          {/* Full Name & Username */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Full Name</label>
-              <Input 
-                {...register('name')}
-                placeholder="John Doe" 
-                variant="bordered"
-                className="w-full"
-                isInvalid={!!errors.name && touchedFields.name}
-                errorMessage={errors.name?.message}
-              />
-            </div>
-            <div>
-              <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">User Name</label>
-              <Input 
-                {...register('username')}
-                placeholder="JohnDoe" 
-                variant="bordered"
-                className="w-full"
-                isInvalid={!!errors.username && touchedFields.username}
-                errorMessage={errors.username?.message}
-              />
-            </div>
+          {/* Full Name */}
+          <div>
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Full Name</label>
+            <Input 
+              {...register('name')}
+              placeholder="John Doe" 
+              variant="bordered"
+              className="w-full"
+            />
+            {formState.errors.name && formState.touchedFields.name && (
+              <ErrorMessage message={formState.errors.name?.message} />
+            )}
           </div>
-
+              <div>
+            <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">User Name</label>
+            <Input 
+              {...register('username')}
+              placeholder="JohnDoe" 
+              variant="bordered"
+              className="w-full"
+            />
+            {formState.errors.username && formState.touchedFields.username && (
+              <ErrorMessage message={formState.errors.username?.message} />
+            )}
+          </div>
           {/* Email */}
           <div>
             <label className="block text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">Email Address</label>
@@ -122,9 +135,10 @@ export default function Register() {
               placeholder="name@company.com" 
               variant="bordered"
               className="w-full"
-              isInvalid={!!errors.email && touchedFields.email}
-              errorMessage={errors.email?.message}
             />
+            {formState.errors.email && formState.touchedFields.email && (
+              <ErrorMessage message={formState.errors.email?.message} />
+            )}
           </div>
 
           {/* Password & Confirm Password */}
@@ -137,9 +151,10 @@ export default function Register() {
                 placeholder="••••••••" 
                 variant="bordered"
                 className="w-full"
-                isInvalid={!!errors.password && touchedFields.password}
-                errorMessage={errors.password?.message}
               />
+              {formState.errors.password && formState.touchedFields.password && (
+                <ErrorMessage message={formState.errors.password?.message} />
+              )}
             </div>
 
             <div>
@@ -150,9 +165,10 @@ export default function Register() {
                 placeholder="••••••••" 
                 variant="bordered"
                 className="w-full"
-                isInvalid={!!errors.rePassword && touchedFields.rePassword}
-                errorMessage={errors.rePassword?.message}
               />
+              {formState.errors.rePassword && formState.touchedFields.rePassword && (
+                <ErrorMessage message={formState.errors.rePassword?.message} />
+              )}
             </div>
           </div>
 
@@ -165,9 +181,10 @@ export default function Register() {
                 type="date" 
                 variant="bordered"
                 className="w-full text-slate-600"
-                isInvalid={!!errors.dateOfBirth && touchedFields.dateOfBirth}
-                errorMessage={errors.dateOfBirth?.message}
               />
+              {formState.errors.dateOfBirth && formState.touchedFields.dateOfBirth && (
+                <ErrorMessage message={formState.errors.dateOfBirth?.message} />
+              )}
             </div>
 
             <div>
@@ -176,7 +193,7 @@ export default function Register() {
                 {...register('gender')}
                 defaultValue=""
                 className={`w-full h-[40px] px-3 rounded-xl border-2 bg-transparent text-sm text-slate-700 outline-none transition-colors ${
-                  errors.gender && touchedFields.gender 
+                  formState.errors.gender && formState.touchedFields.gender 
                     ? 'border-red-400 focus:border-red-500' 
                     : 'border-default-200 focus:border-sky-500'
                 }`}
@@ -185,28 +202,27 @@ export default function Register() {
                 <option value="male">Male</option>
                 <option value="female">Female</option>
               </select>
-              {errors.gender && touchedFields.gender && (
-                <p className="text-xs text-red-500 mt-1.5 font-medium">{errors.gender.message}</p>
+              {formState.errors.gender && formState.touchedFields.gender && (
+                <ErrorMessage message={formState.errors.gender?.message} />
               )}
             </div>
           </div>
-
+          {apiError &&  <div className='bg-red-200 text-white font-bold py-2 my-3 rounded-2xl text-center'>
+            {apiError}
+           </div>}
           <Button 
-            type="submit"
-            isLoading={isLoading}
-            isDisabled={isLoading}
+          isDisabled={isLoading}
+            type="submit" 
             className="w-full mt-4 bg-sky-600 hover:bg-sky-500 text-white font-semibold py-3 rounded-xl shadow-lg shadow-sky-600/30 transition-all duration-200"
           >
-            {isLoading ? 'Creating Account...' : 'Sign Up'}
+           {isLoading ?'Loading...':'Sign Up'}
           </Button>
         </form>
 
         {/* Footer */}
         <p className="text-center text-sm text-slate-500 mt-6">
           Already have an account?{' '}
-          <Link to="/login" className="text-sky-600 font-semibold hover:underline">
-            Log in
-          </Link>
+          <a href="#login" className="text-sky-600 font-semibold hover:underline">Log in</a>
         </p>
       </div>
     </div>

@@ -78,12 +78,12 @@ export default function CreatePostCard({onPostCreated}) {
         <Toaster/>
         <div className="flex items-center gap-3">
           <img 
-            src={userData.photo}
+            src={userData?.photo}
             alt="Avatar" 
             className="w-10 h-10 rounded-full bg-cyan-100" 
           />
           <div>
-            <h2 className="font-bold text-gray-800 text-sm">{userData.name}</h2>
+            <h2 className="font-bold text-gray-800 text-sm">{userData?.name}</h2>
             <div className="flex items-center gap-1 text-xs text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full w-fit mt-0.5 border">
               <HiGlobe className="w-3 h-3" />
               <span>Public</span>
@@ -95,7 +95,7 @@ export default function CreatePostCard({onPostCreated}) {
           rows="3" 
           value={postText}
           onChange={(e)=>setpostText(e.target.value)}
-          placeholder="What's on your mind, Aya?"
+          placeholder=`What's on your mind, {userData?.name}?`
           className="w-full bg-gray-50/50 border border-gray-100 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
         ></textarea>
 

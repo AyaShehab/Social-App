@@ -95,7 +95,7 @@ export default function CreatePostCard({onPostCreated}) {
           rows="3" 
           value={postText}
           onChange={(e)=>setpostText(e.target.value)}
-          placeholder=`What's on your mind, {userData?.name}?`
+          placeholder={`What's on your mind, ${userData?.name || 'User'}?`}
           className="w-full bg-gray-50/50 border border-gray-100 rounded-xl p-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 resize-none"
         ></textarea>
 

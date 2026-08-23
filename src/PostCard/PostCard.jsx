@@ -96,6 +96,7 @@ export default function PostCard({ post, isSinglePost = false }) {
     const days = Math.floor(hours / 24);
     return `${days}d`;
   }
+  if (!post) return null;
 
   return (
     <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden p-5 mb-4">
